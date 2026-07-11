@@ -6,3 +6,6 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# Generated synthetic AQI data
+data/synthetic_delhi_aqi.csv
