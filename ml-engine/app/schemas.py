@@ -27,3 +27,33 @@ class ForecastResponse(BaseModel):
     generated_at: str
     historical: list[HistoricalPoint]
     forecast: list[ForecastPoint]
+
+
+class AnomalyRegionResult(BaseModel):
+    region: str
+    anomaly_score: float
+    is_anomaly: bool
+
+
+class AnomaliesResponse(BaseModel):
+    generated_at: str
+    results: list[AnomalyRegionResult]
+
+
+class RiskProbabilities(BaseModel):
+    Low: float
+    Medium: float
+    High: float
+
+
+class RiskResponse(BaseModel):
+    region: str
+    risk_level: str
+    probabilities: RiskProbabilities
+
+
+class ModelMetricsResponse(BaseModel):
+    accuracy: float
+    f1_macro: float
+    confusion_matrix: list[list[int]]
+    labels: list[str]
