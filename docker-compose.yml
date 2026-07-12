@@ -1,4 +1,14 @@
-# TerraPulse local Kafka stack (single broker, no auth).
+# TerraPulse local data layer (Kafka + optional Postgres).
+#
+# PostgreSQL — two options (do not run both on the same host port):
+#   1) Native Postgres on the host (CURRENT DEFAULT):
+#      Backend application.properties uses jdbc:postgresql://localhost:5432/terrapulse_db.
+#      Your existing local install and data stay as-is.
+#   2) Optional containerized Postgres in this compose file:
+#      Exposed as localhost:5433 (NOT 5432) so it does not collide with native Postgres.
+#      To use it, set DB_PASSWORD in a root .env, start the postgres service, then point
+#      backend spring.datasource.url at localhost:5433 instead of 5432.
+#      We do not change the backend default here — Docker Postgres is opt-in only.
 #
 # Zookeeper: older Kafka (pre-KRaft) needs Zookeeper to store cluster
 # metadata and coordinate brokers. We keep Zookeeper mode here to stay
@@ -52,3 +62,26 @@ services:
       timeout: 10s
       retries: 12
       start_period: 30s
+
+  # Optional — not required when using native Postgres on :5432.
+  # Host port 5433 avoids conflicting with an existing local Postgres on 5432.
+  postgres:
+    image: postgres:16
+    container_name: terrapulse-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: terrapulse_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d terrapulse_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+volumes:
+  postgres_data:
