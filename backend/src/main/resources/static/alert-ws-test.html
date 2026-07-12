@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TerraPulse Alert WebSocket Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.5rem; background: #0f1419; color: #e7ecf1; }
+    h1 { font-size: 1.25rem; }
+    #status { margin: 0.75rem 0; padding: 0.5rem 0.75rem; background: #1c2430; border-radius: 6px; }
+    #log { list-style: none; padding: 0; margin: 0; }
+    #log li {
+      margin: 0.5rem 0; padding: 0.75rem; background: #1c2430; border-left: 4px solid #e85d4c;
+      border-radius: 4px; white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 0.85rem;
+    }
+    .meta { color: #8b9bb4; font-size: 0.8rem; margin-bottom: 0.35rem; }
+  </style>
+</head>
+<body>
+  <h1>Live Alert Feed (temporary test)</h1>
+  <p>Connects to <code>/ws</code>, subscribes to <code>/topic/alerts</code>. Run <code>iot_simulator.py</code> to generate fire alerts.</p>
+  <div id="status">Connecting…</div>
+  <ul id="log"></ul>
+
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <script>
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+
+    function addAlert(payload) {
+      const li = document.createElement('li');
+      const when = payload.createdAt || new Date().toISOString();
+      li.innerHTML =
+        '<div class="meta">' + when + ' · ' + (payload.severity || '?') +
+        ' · region=' + (payload.regionName || payload.regionId) +
+        ' · id=' + payload.id + '</div>' +
+        (payload.message || JSON.stringify(payload));
+      logEl.prepend(li);
+      console.log('ALERT', payload);
+    }
+
+    const socket = new SockJS('/ws');
+    const stompClient = Stomp.over(socket);
+    stompClient.debug = null;
+
+    stompClient.connect({}, function () {
+      statusEl.textContent = 'Connected — subscribed to /topic/alerts';
+      stompClient.subscribe('/topic/alerts', function (message) {
+        addAlert(JSON.parse(message.body));
+      });
+    }, function (error) {
+      statusEl.textContent = 'Connection failed: ' + error;
+      console.error(error);
+    });
+  </script>
+</body>
+</html>

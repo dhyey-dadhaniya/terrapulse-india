@@ -89,3 +89,6 @@ coverage/
 # Misc
 *.bak
 *.tmp
+
+# Generated synthetic AQI data
+ml-engine/data/synthetic_delhi_aqi.csv
