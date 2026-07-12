@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.schemas import (
     AQICurrentResponse,
@@ -108,6 +109,18 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="TerraPulse ML Engine", lifespan=lifespan)
+
+# Allow the Next.js frontend (browser) to call this API during local development.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
